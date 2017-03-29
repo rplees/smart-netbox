@@ -71,7 +71,7 @@ public class NetBoxEngine {
 							.option(ChannelOption.SO_KEEPALIVE, true)
 							.channel(NioServerSocketChannel.class)
 							.childHandler(new TcpServerInitializer());
-					ChannelFuture f=b.bind(settings.getPort()).sync();
+					ChannelFuture f = b.bind(settings.getPort()).sync();
 					logger.info("TCP port="+settings.getPort()+" Start Success !");
 				}
 			}

@@ -18,7 +18,8 @@ import tcpclient.core.Client;
 
 public class TestMain {
     public static void main(String[] args) {
-        Client client = new Client("127.0.0.1",9230,new TestHandler());
+        Client client = new Client("114.55.249.12",9230,new TestHandler());
+//        Client client = new Client("127.0.0.1",9230,new TestHandler());
         ByteMessage message = new ByteMessage((short) 2001);
         message.writeInt(225);
         message.writeDouble(1000.1);
@@ -29,7 +30,7 @@ public class TestMain {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 5; i++) {
             client.send(message);
         }
 
