@@ -71,7 +71,13 @@ public class Client {
             dis.writeInt(packLen);           //【len   =4byte】
             dis.writeShort(message.getId()); //【msgId =2byte】
             dis.writeByte((byte) 0);        //【encr  =1byte】
+            System.out.println("size2:" + dis.size());
+            System.out.println("size3:" + dataBytes.length);
             dis.write(dataBytes);           //【data  =nbyte】
+            
+            System.out.println("size:" + dis.size());
+            
+            System.err.println(dis.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -112,5 +118,22 @@ public class Client {
                 }
             }
         }
+    }
+    
+    public static void main(String[] args) {
+    	Client.writeInt(200000);
+    	Client.writeShort(200000);
+	}
+    
+    public static final void writeInt(int v) {
+        System.out.println((v >>> 24) & 0xFF);
+        System.out.println((v >>> 16) & 0xFF);
+        System.out.println((v >>>  8) & 0xFF);
+        System.out.println((v >>>  0) & 0xFF);
+    }
+    
+    public static final void writeShort(int v) {
+    	System.out.println((v >>> 8) & 0xFF);
+    	System.out.println((v >>> 0) & 0xFF);
     }
 }

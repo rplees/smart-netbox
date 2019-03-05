@@ -33,6 +33,7 @@ public class TcpForDefaultProtoDecoder extends TcpDecoder {
 		}
 		//开始读，做个标识，下次从这里开始
 		buffer.markReaderIndex();
+		
 		//【1】包头判断，非法数据则清除，并考虑是否断掉连接
 		byte header_name= buffer.readByte();
 		if (header_name!= ProtocolConstant.PACK_HEAD_FLAG){
@@ -40,7 +41,6 @@ public class TcpForDefaultProtoDecoder extends TcpDecoder {
 				logger.error("连接被断开，检测到您包头标识错误:"+header_name+",正确包头应为:"+ProtocolConstant.PACK_HEAD_FLAG);
 			}
 			buffer.clear();//非法数据清除
-			System.out.println("包头标识错误!");
 			ctx.channel().disconnect().channel().close();
 		}
 		//【2】包长度判断，判断数据包长度是否达到基本长度，小于意味数据不完整则不处理，复位，等待下次数据到来时处理

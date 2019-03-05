@@ -4,12 +4,15 @@ package com.iih5.netbox.codec.tcp;
 import com.iih5.netbox.core.GlobalConstant;
 import com.iih5.netbox.core.ProtocolConstant;
 import com.iih5.netbox.message.ByteMessage;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class TcpForDefaultByteDecoder extends TcpDecoder {
@@ -27,23 +30,28 @@ public class TcpForDefaultByteDecoder extends TcpDecoder {
 	protected void decode(ChannelHandlerContext ctx, ByteBuf buffer,List<Object> out) throws Exception {
 		if (GlobalConstant.debug){
 			logger.info("收到数据《《 size:"+buffer.readableBytes());
+			;
 		}
 		if (buffer.readableBytes()<=0){
+			logger.warn("readableBytes为0,不处理.");
 			return;
 		}
+		
 		//开始读，做个标识，下次从这里开始
 		buffer.markReaderIndex();
 		//【1】包头判断，非法数据则清除，并考虑是否断掉连接
 		byte header_name= buffer.readByte();
-		if (header_name!= ProtocolConstant.PACK_HEAD_FLAG){
-			if (GlobalConstant.debug){
-				logger.error("连接被断开，检测到您包头标识错误:"+header_name+",正确包头应为:"+ProtocolConstant.PACK_HEAD_FLAG);
-			}
-			buffer.clear();//非法数据清除
-			ctx.channel().disconnect().channel().close();
-		}
+		logger.info("协议头:{}", header_name);
+//		if (header_name!= ProtocolConstant.PACK_HEAD_FLAG){
+//			if (GlobalConstant.debug){
+//				logger.error("连接被断开，检测到您包头标识错误:"+header_name+",正确包头应为:"+ProtocolConstant.PACK_HEAD_FLAG);
+//			}
+//			buffer.clear();//非法数据清除
+////			ctx.channel().disconnect().channel().close();
+//		}
 		//【2】包长度判断，判断数据包长度是否达到基本长度，小于意味数据不完整则不处理，复位，等待下次数据到来时处理
 		if (buffer.readableBytes()<HEAD_SIZE) {
+			logger.info("协议头的长度非法:{}, {}", buffer.readableBytes(), HEAD_SIZE);
 			buffer.resetReaderIndex();
 			return ;
 		}
@@ -55,6 +63,11 @@ public class TcpForDefaultByteDecoder extends TcpDecoder {
 		byte encr=buffer.readByte();
 		//在读出包头后，还剩下实际数据长度的字节数
 		int dataSize=packSize-HEAD_SIZE;
+		
+		logger.info("packSize:{}", packSize);
+		logger.info("msgId:{}", msgId);
+		logger.info("encr:{}", encr);
+		logger.info("dataSize:{}", dataSize);
 		//【2】数据段判断,数据段还不完整，复位，等待下次数据到来时处理
 		if (buffer.readableBytes() < dataSize) {
 			buffer.resetReaderIndex();
