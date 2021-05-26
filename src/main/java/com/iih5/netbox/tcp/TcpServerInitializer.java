@@ -1,10 +1,7 @@
-
 package com.iih5.netbox.tcp;
 
-import com.iih5.netbox.codec.tcp.TcpForDefaultByteDecoder;
-import com.iih5.netbox.codec.tcp.TcpForDefaultByteEncoder;
 import com.iih5.netbox.core.ProtocolConstant;
-import io.netty.channel.ChannelHandler;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -22,7 +19,5 @@ public class TcpServerInitializer extends ChannelInitializer<SocketChannel>{
 		p.addLast(new IdleStateHandler(idleTime, 0, 0));
 		//逻辑：执行业务逻辑
 		p.addLast(new TcpStateHandler());
-
-
 	}
 }

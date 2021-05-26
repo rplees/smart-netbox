@@ -1,4 +1,3 @@
-
 package com.iih5.netbox.annotation;
 
 import java.lang.annotation.ElementType;

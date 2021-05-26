@@ -1,4 +1,3 @@
-
 package com.iih5.netbox.codec.tcp;
 
 import com.iih5.netbox.core.GlobalConstant;
@@ -21,73 +20,76 @@ public class TcpForDefaultProtoDecoder extends TcpDecoder {
 	 4）加密段      :表示数据段是否加密,采用什么加密算法
 	 5）数据段      :采用byte[]形式存放
 	 */
-	//包头7个字节
-	private final static int HEAD_SIZE =7;
+	// 包头7个字节
+	private final static int HEAD_SIZE = 7;
 	private Logger logger = LoggerFactory.getLogger(TcpForDefaultProtoDecoder.class);
-	protected void decode(ChannelHandlerContext ctx, ByteBuf buffer,List<Object> out) throws Exception {
-		if (GlobalConstant.debug){
-			logger.info("收到数据《《 size:"+buffer.readableBytes());
+
+	protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
+		if (GlobalConstant.debug) {
+			logger.info("收到数据《《 size:" + buffer.readableBytes());
 		}
-		if (buffer.readableBytes()<=0){
+		if (buffer.readableBytes() <= 0) {
 			return;
 		}
-		//开始读，做个标识，下次从这里开始
+		// 开始读，做个标识，下次从这里开始
 		buffer.markReaderIndex();
-		
-		//【1】包头判断，非法数据则清除，并考虑是否断掉连接
-		byte header_name= buffer.readByte();
-		if (header_name!= ProtocolConstant.PACK_HEAD_FLAG){
-			if (GlobalConstant.debug){
-				logger.error("连接被断开，检测到您包头标识错误:"+header_name+",正确包头应为:"+ProtocolConstant.PACK_HEAD_FLAG);
+
+		// 【1】包头判断，非法数据则清除，并考虑是否断掉连接
+		byte header_name = buffer.readByte();
+		if (header_name != ProtocolConstant.PACK_HEAD_FLAG) {
+			if (GlobalConstant.debug) {
+				logger.error("连接被断开，检测到您包头标识错误:" + header_name + ",正确包头应为:" + ProtocolConstant.PACK_HEAD_FLAG);
 			}
-			buffer.clear();//非法数据清除
+			buffer.clear();// 非法数据清除
 			ctx.channel().disconnect().channel().close();
 		}
-		//【2】包长度判断，判断数据包长度是否达到基本长度，小于意味数据不完整则不处理，复位，等待下次数据到来时处理
-		if (buffer.readableBytes()<HEAD_SIZE) {
+		// 【2】包长度判断，判断数据包长度是否达到基本长度，小于意味数据不完整则不处理，复位，等待下次数据到来时处理
+		if (buffer.readableBytes() < HEAD_SIZE) {
 			buffer.resetReaderIndex();
-			return ;
+			return;
 		}
-		//包长度(4个字节)
+		// 包长度(4个字节)
 		int packSize = buffer.readInt();
-		//消息号(2个字节)
-		short msgId  = buffer.readShort();
-		//加密段(1个字节)
-		byte encr=buffer.readByte();
-		//在读出包头后，还剩下实际数据长度的字节数
-		int dataSize=packSize-HEAD_SIZE;
-		//【2】数据段判断,数据段还不完整，复位，等待下次数据到来时处理
+		// 消息号(2个字节)
+		short msgId = buffer.readShort();
+		// 加密段(1个字节)
+		byte encr = buffer.readByte();
+		// 在读出包头后，还剩下实际数据长度的字节数
+		int dataSize = packSize - HEAD_SIZE;
+		// 【2】数据段判断,数据段还不完整，复位，等待下次数据到来时处理
 		if (buffer.readableBytes() < dataSize) {
 			buffer.resetReaderIndex();
 			return;
 		}
-		if (GlobalConstant.debug){
-			logger.info("接收完整包数据信息《《 packSize:"+packSize+" msgId:"+msgId+" encr:"+encr+" data size="+dataSize);
+		if (GlobalConstant.debug) {
+			logger.info("接收完整包数据信息《《 packSize:" + packSize + " msgId:" + msgId + " encr:" + encr + " data size="
+					+ dataSize);
 		}
 		// 数据对象组装
 		ByteBuf b = Unpooled.buffer(dataSize);
 		buffer.readBytes(b);
-		ProtoMessage message=new ProtoMessage(msgId);
+		ProtoMessage message = new ProtoMessage(msgId);
 		message.setEncrypt(encr);
 		message.setContent(b.array());
 		out.add(message);
 	}
-	public ProtoMessage unPack(byte[] arr){
+
+	public ProtoMessage unPack(byte[] arr) {
 		ByteBuf buffer = Unpooled.copiedBuffer(arr);
-		//【1】包头判断，非法数据则清除，并考虑是否断掉连接
-		byte header_name= buffer.readByte();
-		//包长度(4个字节)
+		// 【1】包头判断，非法数据则清除，并考虑是否断掉连接
+		byte header_name = buffer.readByte();
+		// 包长度(4个字节)
 		int packSize = buffer.readInt();
-		//消息号(2个字节)
-		short msgId  = buffer.readShort();
-		//加密段(1个字节)
-		byte encr=buffer.readByte();
-		//在读出包头后，还剩下实际数据长度的字节数
-		int dataSize=packSize-HEAD_SIZE;
+		// 消息号(2个字节)
+		short msgId = buffer.readShort();
+		// 加密段(1个字节)
+		byte encr = buffer.readByte();
+		// 在读出包头后，还剩下实际数据长度的字节数
+		int dataSize = packSize - HEAD_SIZE;
 		// 数据对象组装
 		ByteBuf b = Unpooled.buffer(dataSize);
 		buffer.readBytes(b);
-		ProtoMessage message=new ProtoMessage(msgId);
+		ProtoMessage message = new ProtoMessage(msgId);
 		message.setEncrypt(encr);
 		message.setContent(b.array());
 		return message;

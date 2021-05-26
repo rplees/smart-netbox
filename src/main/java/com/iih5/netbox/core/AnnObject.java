@@ -6,10 +6,10 @@ import java.lang.reflect.Method;
 public class AnnObject {
 	private Class<?> clas;
 	private Method method;
-	
-	public AnnObject( Class<?> clas,Method method){
-		this.clas=clas;
-		this.method=method;
+
+	public AnnObject(Class<?> clas, Method method) {
+		this.clas = clas;
+		this.method = method;
 	}
 
 	public Class<?> getClas() {

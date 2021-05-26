@@ -1,7 +1,6 @@
 
 package com.iih5.netbox.session;
 
-
 import com.iih5.actor.IActor;
 import com.iih5.netbox.codec.ws.WsBinaryEncoder;
 import com.iih5.netbox.codec.ws.WsTextEncoder;
@@ -26,14 +25,16 @@ public class Session implements ISession {
 	private IActor actor;
 	private String userId;
 	private Info info;
-	private Map<String, Object> parasMap=new Hashtable<String, Object>();
-	public Session (Channel channel){
-		this.channel=channel;
+	private Map<String, Object> parasMap = new Hashtable<String, Object>();
+
+	public Session(Channel channel) {
+		this.channel = channel;
 		sessionID = UUID.randomUUID().toString();
 	}
-	public Session (Channel channel,IActor actor) {
-		this.channel=channel;
-		this.actor=actor;
+
+	public Session(Channel channel, IActor actor) {
+		this.channel = channel;
+		this.actor = actor;
 		sessionID = UUID.randomUUID().toString();
 	}
 
@@ -41,7 +42,7 @@ public class Session implements ISession {
 		return channel;
 	}
 
-	public String  getId() {
+	public String getId() {
 		return sessionID;
 	}
 
@@ -65,9 +66,8 @@ public class Session implements ISession {
 		parasMap.putAll(vars);
 	}
 
-
 	public void setInfo(Info info) {
-		this.info=info;
+		this.info = info;
 	}
 
 	public Info getInfo() {
@@ -83,16 +83,16 @@ public class Session implements ISession {
 	}
 
 	public boolean bindUserID(String userId) {
-		if (userId!=null){
-			this.userId=userId;
-			return SessionManager.getInstance().bindUserIDAndChannel(userId,channel);
+		if (userId != null) {
+			this.userId = userId;
+			return SessionManager.getInstance().bindUserIDAndChannel(userId, channel);
 		}
-		return  false;
+		return false;
 	}
 
 	public void unBindUserID(String userId) {
-		if (userId!=null){
-			this.userId=null;
+		if (userId != null) {
+			this.userId = null;
 			SessionManager.getInstance().unBindUserIDAndChannel(userId);
 		}
 	}
@@ -100,40 +100,44 @@ public class Session implements ISession {
 	public String getUserID() {
 		return this.userId;
 	}
+
 	/**
 	 * 发送tcp/websocket binary传输
+	 * 
 	 * @param msg
-     */
-	public void send(Message msg){
-		if (channel!=null) {
+	 */
+	public void send(Message msg) {
+		if (channel != null) {
 			if (ProtocolConstant.transformType == TransformType.TCP) {
-				if (msg instanceof ByteMessage){
+				if (msg instanceof ByteMessage) {
 					ByteMessage byteMessage = (ByteMessage) msg;
 					byteMessage.resetReaderIndex();
 				}
 				channel.writeAndFlush(msg);
-			}else if (ProtocolConstant.transformType == TransformType.WS_BINARY){
-				try{
-					ByteBuf byteBuf= Unpooled.buffer(512);
-					WsBinaryEncoder decoder= (WsBinaryEncoder) ProtocolConstant.wsBinaryEncoder.getClass().newInstance();
-					Method method =decoder.getClass().getMethod("encode",Channel.class,Object.class,ByteBuf.class);
-					method.invoke(decoder,channel,msg,byteBuf);
+			} else if (ProtocolConstant.transformType == TransformType.WS_BINARY) {
+				try {
+					ByteBuf byteBuf = Unpooled.buffer(512);
+					WsBinaryEncoder decoder = (WsBinaryEncoder) ProtocolConstant.wsBinaryEncoder.getClass()
+							.newInstance();
+					Method method = decoder.getClass().getMethod("encode", Channel.class, Object.class, ByteBuf.class);
+					method.invoke(decoder, channel, msg, byteBuf);
 					channel.writeAndFlush(new BinaryWebSocketFrame(byteBuf));
-				}catch (Exception e){
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}else if (ProtocolConstant.transformType == TransformType.WS_TEXT){
-				try{
+			} else if (ProtocolConstant.transformType == TransformType.WS_TEXT) {
+				try {
 					StringBuffer text = new StringBuffer();
-					WsTextEncoder decoder= (WsTextEncoder) ProtocolConstant.wsTextEncoder.getClass().newInstance();
-					Method method =decoder.getClass().getMethod("encode",Channel.class,Object.class,StringBuffer.class);
-					method.invoke(decoder,channel,msg,text);
+					WsTextEncoder decoder = (WsTextEncoder) ProtocolConstant.wsTextEncoder.getClass().newInstance();
+					Method method = decoder.getClass()
+							.getMethod("encode", Channel.class, Object.class, StringBuffer.class);
+					method.invoke(decoder, channel, msg, text);
 					channel.writeAndFlush(new TextWebSocketFrame(text.toString()));
-				}catch (Exception e){
+				} catch (Exception e) {
 					//
 				}
-			}else {
-				if (msg instanceof ByteMessage){
+			} else {
+				if (msg instanceof ByteMessage) {
 					ByteMessage byteMessage = (ByteMessage) msg;
 					byteMessage.resetReaderIndex();
 				}

@@ -1,4 +1,3 @@
-
 package com.iih5.netbox.websocket;
 
 import io.netty.channel.ChannelInitializer;

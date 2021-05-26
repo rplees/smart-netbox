@@ -1,4 +1,3 @@
-
 package com.iih5.netbox.codec.tcp;
 
 import com.iih5.netbox.core.GlobalConstant;
