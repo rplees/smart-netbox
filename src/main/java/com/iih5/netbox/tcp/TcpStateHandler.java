@@ -9,12 +9,14 @@ import com.iih5.netbox.message.Message;
 import com.iih5.netbox.session.ISession;
 import com.iih5.netbox.session.Session;
 import com.iih5.netbox.session.SessionManager;
+import com.iih5.netbox.util.TracingRunnable;
 import com.iih5.netbox.websocket.WebSocketServerHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class TcpStateHandler extends ChannelInboundHandlerAdapter {
 	private static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
@@ -49,15 +51,16 @@ public class TcpStateHandler extends ChannelInboundHandlerAdapter {
 	// 读取数据
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
 		if (GlobalConstant.debug) {
-			logger.info("读取数据...");
+			logger.info("读取数据...{}", msg);
 		}
+		
 		if (msg != null && msg instanceof Message) {
 			final Message message = (Message) msg;
 			final Channel channel = ctx.channel();
 			final AnnObject cmdHandler = CmdHandlerCache.getInstance().getAnnObject(message.getId());
 			final ISession session = SessionManager.getInstance().getSession(channel);
 			if (cmdHandler != null && session != null) {
-				session.getActor().execute(new Runnable() {
+				session.getActor().execute(TracingRunnable.get(new Runnable() {
 					public void run() {
 						try {
 							cmdHandler.getMethod().invoke(cmdHandler.getClas().newInstance(), message, session);
@@ -65,7 +68,7 @@ public class TcpStateHandler extends ChannelInboundHandlerAdapter {
 							logger.error("操作失败", e);
 						}
 					}
-				});
+				}));
 			} else {
 				logger.error("cmdId:" + message.getId() + " 不存在");
 			}
@@ -74,7 +77,12 @@ public class TcpStateHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		// TODO
+		super.exceptionCaught(ctx, cause);
+        cause.printStackTrace();
+        Channel channel = ctx.channel();
+        if(channel.isActive()){
+            ctx.close();
+        }
 	}
 
 	// 空闲处理，读、写、读或写3种类型

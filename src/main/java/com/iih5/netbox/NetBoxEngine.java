@@ -23,6 +23,7 @@ import com.iih5.netbox.util.ClassUtil;
 import com.iih5.netbox.websocket.WebSocketServerInitializer;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -82,7 +83,7 @@ public class NetBoxEngine {
 							.option(ChannelOption.SO_KEEPALIVE, true)
 							.channel(NioServerSocketChannel.class)
 							.childHandler(new TcpServerInitializer());
-					b.bind(settings.getPort()).sync();
+					ChannelFuture sync = b.bind(settings.getPort()).sync();
 					logger.info("TCP port=" + settings.getPort() + " Start Success !");
 				}
 			}
